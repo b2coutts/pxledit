@@ -1,7 +1,7 @@
 #lang racket
 ;; code for handling a state
 
-(provide sref dirty? sset! dset! dset-all! get-dirty)
+(provide sref srefd! dirty? sset! dset! dset-all! get-dirty)
 
 (define-struct/contract state (
   [data hash?] ;; data store, mapping keys to values
@@ -15,7 +15,15 @@
 
 ;; lookup a value in the state
 (define/contract (sref key)
-  (-> key? val?)
+  (-> any/c val?)
+  (unless (hash-has-key? (state-data st) key)
+    (error (format "sref: key does not exist: ~s" key)))
+  (hash-ref (state-data st) key))
+
+;; like sref, but sets the dirty flag
+(define/contract (srefd! key)
+  (-> any/c val?)
+  (set-add! (state-dirty st) key)
   (hash-ref (state-data st) key))
 
 ;; lookup whether or not a key is dirty

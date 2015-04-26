@@ -120,8 +120,10 @@
   (-> (is-a?/c canvas%) (is-a?/c dc<%>) picture? void?)
   (match-define (picture k x1 y1 x2 y2 deps pr dns fn) pic)
   (define img (fn))
-  (when (or (> (image-width img) (- x2 x1)) (> (image-height img) (- y2 y1)))
-    (error "draw!: image given by ~s exceeds its bounds!" k))
+  (when (or (> (image-width img) (add1 (- x2 x1))) (> (image-height img) (add1 (- y2 y1))))
+    (error (format "draw!: image '~s' in box (~a,~a)~~(~a,~a) has size (~a,~a)!"
+                   k x1 y1 x2 y2 (image-width img) (image-height img))))
+  (printf "DEBUG: draw-pic!: size of ~s is ~ax~a\n" k (image-width img) (image-height img))
   (render-image img dc x1 y1))
 
 ;; function which draws all necessary pictures
@@ -132,7 +134,6 @@
 ;; callback for the paint-callback of canvas%; TODO: should this redraw everything?
 (define/contract (paint-cb! cvs-arg dc-arg)
   (-> (is-a?/c canvas%) (is-a?/c dc<%>) void?)
-  (printf "foobar\n")
   (define dset (get-dirty)) ;; set of dirty state variables
   (define nlst (filter (lambda (k) (not (empty? (set-union (picture-deps (hash-ref pics k)) dset))))
                        (hash-keys pics)))
