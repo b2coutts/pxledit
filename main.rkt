@@ -43,6 +43,8 @@
     [#\j (move-cursor! x (+ y 1))]
     [#\k (move-cursor! x (- y 1))]
     [#\l (move-cursor! (+ x 1) y)]
+    [#\v (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
+         (paint!)]
     [_ (void)])
   (void))
           
