@@ -18,9 +18,10 @@
 (sset! 'brushes (make-vector 10 white))
 
 ;; TODO: temporary; makes the default image more interesting
-(for ([x (sref 'xpx)])
-  (for ([y (sref 'ypx)])
-    (vector-set! (srefd! 'colors) (+ (* y (sref 'xpx)) x) (color 0 (* x 10) (* y 10) 255))))
+(when #f
+  (for ([x (sref 'xpx)])
+    (for ([y (sref 'ypx)])
+      (vector-set! (srefd! 'colors) (+ (* y (sref 'xpx)) x) (color 0 (* x 10) (* y 10) 255)))))
 
 ;; installs all pictures to painter, using the given pixel counts/size
 (define (install-pictures!)
@@ -76,8 +77,8 @@
     [#\L (move-cursor! (+ x 5) y)]
     [#\0 (move-cursor! 0 y)]
     [#\$ (move-cursor! (sref 'xpx) y)]
-    [#\g (move-cursor! x 0)]
-    [#\G (move-cursor! x (sref 'ypx))]
+    [#\( (move-cursor! x 0)]
+    [#\) (move-cursor! x (sref 'ypx))]
 
     ;; toggle cursor visibility
     [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
