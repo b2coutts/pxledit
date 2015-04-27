@@ -1,6 +1,6 @@
 #lang racket
 
-(require "painter.rkt" "state.rkt" "pictures.rkt")
+(require "painter.rkt" "state.rkt" "pictures.rkt" "util.rkt")
 
 (require racket/gui/base data/gvector
          (except-in 2htdp/image make-color make-pen)
@@ -12,9 +12,12 @@
 (sset! 'ypx 20)     ;; number of rows in bmp
 (sset! 'cursor-x 0) ;; x- and y- positions of the cursor, 0-indexed
 (sset! 'cursor-y 0)
-(sset! 'colors (make-vector (* (sref 'xpx) (sref 'ypx)) "white"))
+(sset! 'colors (make-vector (* (sref 'xpx) (sref 'ypx)) white)) ;; the bitmap colours
 (sset! 'cursor-visible? #t)
+(sset! 'current-brush 1)  ;; the current brush (colour) being used
+(sset! 'brushes (make-vector 10 white))
 
+;; TODO: temporary; makes the default image more interesting
 (for ([x (sref 'xpx)])
   (for ([y (sref 'ypx)])
     (vector-set! (srefd! 'colors) (+ (* y (sref 'xpx)) x) (color 0 (* x 10) (* y 10) 255))))
@@ -34,16 +37,64 @@
   (sset! 'cursor-y newy)
   (paint!))
 
+;; increments the given colour value of the current brush by the given amount
+(define/contract (inc-color! col amt)
+  (-> (or/c 'red 'green 'blue 'alpha) integer? void?)
+  (match-define (color r g b a) (vector-ref (sref 'brushes) (sref 'current-brush)))
+  (vector-set! (srefd! 'brushes) (sref 'current-brush)
+    (match col
+      ['red   (color (modulo (+ r amt) 256) g b a)]
+      ['green (color r (modulo (+ g amt) 256) b a)]
+      ['blue (color r g (modulo (+ b amt) 256) a)]
+      ['alpha (color r g b (modulo (+ a amt) 256))])))
+
 (define/contract (handle-ke! ke)
   (-> (is-a?/c key-event%) void?)
   (define x (sref 'cursor-x))
   (define y (sref 'cursor-y))
-  (match (send ke get-key-code)
+  (define ctrl (send ke get-control-down))
+  (define code (send ke get-key-code))
+  (match code
+    ;; navigate the area
     [#\h (move-cursor! (- x 1) y)]
     [#\j (move-cursor! x (+ y 1))]
     [#\k (move-cursor! x (- y 1))]
     [#\l (move-cursor! (+ x 1) y)]
-    [#\v (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
+    [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
+         (paint!)]
+
+    ;; adjust red amount
+    [#\r (inc-color! 'red (if ctrl 50 1))]
+    [#\R (inc-color! 'red 10)]
+    [#\e (inc-color! 'red (if ctrl -50 -1))]
+    [#\E (inc-color! 'red -10)]
+
+    ;; adjust green amount
+    [#\g (inc-color! 'green (if ctrl 50 1))]
+    [#\G (inc-color! 'green 10)]
+    [#\f (inc-color! 'green (if ctrl -50 -1))]
+    [#\F (inc-color! 'green -10)]
+
+    ;; adjust blue amount
+    [#\b (inc-color! 'blue (if ctrl 50 1))]
+    [#\B (inc-color! 'blue 10)]
+    [#\v (inc-color! 'blue (if ctrl -50 -1))]
+    [#\V (inc-color! 'blue -10)]
+
+    ;; adjust alpha amount
+    [#\a (inc-color! 'alpha (if ctrl 50 1))]
+    [#\A (inc-color! 'alpha 10)]
+    [#\z (inc-color! 'alpha (if ctrl -50 -1))]
+    [#\Z (inc-color! 'alpha -10)]
+
+    ;; change brush
+    [(or #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0)
+      (sset! 'current-brush (- (char->integer code) 48))
+      (paint!)]
+
+    ;; apply brush to current pixel
+    [#\d (vector-set! (srefd! 'colors) (+ (* y (sref 'xpx)) x)
+                      (vector-ref (sref 'brushes) (sref 'current-brush)))
          (paint!)]
     [_ (void)])
   (void))
