@@ -12,6 +12,7 @@
   init-painter!
   add-pic!
   remove-pic!
+  clear-pics!
   paint!
 )
 
@@ -107,6 +108,11 @@
   (hash-remove! pics key)
   (hash-remove! pdeps key))
 
+(define/contract (clear-pics!)
+  (-> void?)
+  (hash-clear! pics)
+  (hash-clear! pdeps))
+
 ;; helper function; adds (the keys of) all pictures that depend on (hash-ref pics key) to deps
 (define/contract (add-deps! deps key)
   (-> set-mutable? any/c void?)
@@ -123,7 +129,6 @@
   (when (or (> (image-width img) (add1 (- x2 x1))) (> (image-height img) (add1 (- y2 y1))))
     (error (format "draw!: image '~s' in box (~a,~a)~~(~a,~a) has size (~a,~a)!"
                    k x1 y1 x2 y2 (image-width img) (image-height img))))
-  (printf "DEBUG: draw-pic!: size of ~s is ~ax~a\n" k (image-width img) (image-height img))
   (render-image img dc x1 y1))
 
 ;; function which draws all necessary pictures
