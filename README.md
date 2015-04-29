@@ -20,8 +20,7 @@ increase each component with r, g, b, and a; you can decrease each component
 with e, d, v, and z. Using shift changes a colour by 10, and using ctrl changes
 a colour by 50. You can also load the colour of the pixel under the cursor with
 q. You have 9 different brushes; you can switch between them with 1-9. Press d
-to apply the colour to the current pixel. You can press undo to undo your last
-change.
+to apply the colour to the current pixel. You can press u to undo your last change.
 
 Saving/Loading
 --------------
