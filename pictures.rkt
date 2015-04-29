@@ -22,7 +22,7 @@
       (define-values (imglst posnlst)
         (for/lists (l1 l2)
                    ([j ypx])
-          (values (rectangle pxwd pxwd "solid" (get-color xpx i j))
+          (values (rectangle pxwd pxwd "solid" (solidify (get-color xpx i j)))
                   ;; TODO: why is this 5 necessary? It makes me uncomfortable :(
                   (make-posn (* pxwd i) (* pxwd j)))))
       (values (append imglst imgs) (append posnlst posns))))
@@ -73,7 +73,7 @@
     (set 'cursor-x 'cursor-y 'cursor-visible? 'current-brush 'brushes)
     1.0
     #f
-    (thunk (define col (vector-ref (sref 'brushes) (sref 'current-brush)))
+    (thunk (define col (solidify (vector-ref (sref 'brushes) (sref 'current-brush))))
            (if (sref 'cursor-visible?)
                (place-image/align (cursor-img col) (* (sref 'cursor-x) (sref 'pxwd))
                                   (* (sref 'cursor-y) (sref 'pxwd)) "left" "top" empty-rec)

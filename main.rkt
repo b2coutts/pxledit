@@ -10,6 +10,7 @@
 (define img-x-size (make-parameter 20))
 (define img-y-size (make-parameter 20))
 (define img-px-width (make-parameter 16))
+(define img-default-color (make-parameter white))
 
 (define img-filename (command-line
   #:program "pxledit"
@@ -23,6 +24,8 @@
     [("-p" "--pixel-width") pw
                             "Display each pixel with a pw-by-pw square on screen"
                             (img-px-width (string->number pw))]
+    [("-t" "--transparent") "Make new image initially transparent instead of white"
+                            (img-default-color trans)]
   #:args (filename)
   filename))
 
@@ -32,7 +35,7 @@
 (sset! 'filename img-filename)
 (sset! 'cursor-x 0) ;; x- and y- positions of the cursor, 0-indexed
 (sset! 'cursor-y 0)
-(sset! 'colors (make-vector (* (sref 'xpx) (sref 'ypx)) white)) ;; the bitmap colours
+(sset! 'colors (make-vector (* (sref 'xpx) (sref 'ypx)) (img-default-color))) ;; the bitmap colours
 (sset! 'cursor-visible? #t)
 (sset! 'current-brush 1)  ;; the current brush (colour) being used
 (sset! 'brushes (make-vector 10 black))
