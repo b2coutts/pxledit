@@ -61,8 +61,7 @@
 
 ;; installs all pictures to painter, using the given pixel counts/size
 (define (install-pictures!)
-  (for ([mk (list mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor
-                  mk-pic-filename)])
+  (for ([mk (list mk-pic-background mk-pic-pixels mk-pic-info mk-pic-cursor)])
     (add-pic! (mk (sref 'xpx) (sref 'ypx) (sref 'pxwd)))))
 
 ;; helper function, which moves the cursor to the specified position, snapping back to nearest edge

@@ -1,6 +1,6 @@
 #lang racket
 
-(provide mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor mk-pic-filename get-color)
+(provide mk-pic-background mk-pic-pixels mk-pic-cursor mk-pic-info get-color)
 
 (require "painter.rkt" "state.rkt" "util.rkt")
 
@@ -83,34 +83,43 @@
                                   (* (sref 'cursor-y) (sref 'pxwd)) "left" "top" empty-rec)
                empty-rec))))
 
-(define/contract (mk-pic-cursor-info xpx ypx pxwd)
-  (-> integer? integer? integer? picture?)
-  (picture
-    'cursor-info
-    (+ (* xpx pxwd) 1)
-    1
-    (+ (* xpx pxwd) 100)
-    120
-    (set 'cursor-x 'cursor-y 'brushes 'current-brush)
-    1.0
-    #f
-    (thunk (match-define (color r g b a) (vector-ref (sref 'brushes) (sref 'current-brush)))
-           (above/align "left"
-            (text (format "(~a,~a)" (sref 'cursor-x) (sref 'cursor-y)) 14 'white)
-            (text (format "R: ~a" r) 14 'red)
-            (text (format "G: ~a" g) 14 'green)
-            (text (format "B: ~a" b) 14 'blue)
-            (text (format "A: ~a" a) 14 'white)))))
+;; my default text
+(define (mytext str col)
+  (text/font str 12 col #f 'default 'normal 'normal #f))
 
-(define/contract (mk-pic-filename xpx ypx pxwd)
+;; my bold text
+(define (mybold str col)
+  (text/font str 14 col #f 'default 'normal 'bold #f))
+
+(define/contract (mk-pic-info xpx ypx pxwd)
   (-> integer? integer? integer? picture?)
   (picture
-    'filename
-    (+ (* xpx pxwd) 1)
-    150
-    (+ (* xpx pxwd) 300)
-    200
-    (set 'filename)
-    0.5
-    #f
-    (thunk (text (sref 'filename) 14 'white))))
+    'info
+    (+ (* xpx pxwd) 10)
+    1
+    (+ (* xpx pxwd) 260)
+    250
+    (set 'cursor-x 'cursor-y 'brushes 'current-brush 'filename)
+    1.0
+    #t
+    (thunk
+      (match-define (color r g b a) (vector-ref (sref 'brushes) (sref 'current-brush)))
+      (define x (sref 'cursor-x))
+      (define y (sref 'cursor-y))
+      (match-define (color pr pg pb pa) (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))
+      (overlay/align "left" "top"
+        (above/align "left"
+          (mybold (format "Brush ~a:  ~a,~a" (sref 'current-brush) x y) 'white)
+          (mytext (format "R: ~a" r) 'red)
+          (mytext (format "G: ~a" g) 'green)
+          (mytext (format "B: ~a" b) 'blue)
+          (mytext (format "A: ~a" a) 'white)
+          (mytext "" 'black) ;; spacer
+          (mybold "Pixel under brush:" 'white)
+          (mytext (format "R: ~a" pr) 'red)
+          (mytext (format "G: ~a" pg) 'green)
+          (mytext (format "B: ~a" pb) 'blue)
+          (mytext (format "A: ~a" pa) 'white)
+          (mytext "" 'black) ;; spacer
+          (mytext (sref 'filename) 'white))
+        (rectangle 150 150 "solid" black)))))
