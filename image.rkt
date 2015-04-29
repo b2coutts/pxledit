@@ -5,6 +5,13 @@
 
 (require racket/draw (except-in 2htdp/image make-color make-pen))
 
+;; infers an image filetype from the file extension
+(define/contract (get-image-filetype filename)
+  (-> path-string? (or/c 'png 'jpeg 'xbm 'xpm 'bmp))
+  (match (last (string-split filename "."))
+    [(or "jpg" "jpeg") 'jpeg]
+    [_ 'png]))
+
 ;; outputs a vector of a form like (sref 'pixels) to the given filename
 (define/contract (write-pixels-to-file vec width height filename)
   (-> vector? integer? integer? path-string? void?)
@@ -18,7 +25,7 @@
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 2) b)
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 3) g)))
   (send bmp set-argb-pixels 0 0 width height pxls)
-  (send bmp save-file filename 'png)
+  (send bmp save-file filename (get-image-filetype filename))
   (void))
 
 ;; inverse of the above; produces the vector, width, and height of the image
