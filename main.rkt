@@ -191,5 +191,7 @@
 
 (install-pictures!)
 
+(clear-screen!)
 (paint!)
+(focus!)
 (printf "pxledit initialized\n")

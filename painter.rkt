@@ -14,6 +14,7 @@
   remove-pic!
   clear-pics!
   paint!
+  focus!
   clear-screen!
 )
 
@@ -137,6 +138,8 @@
 (define/contract (paint!)
   (-> void?)
   (paint-cb! cvs (send cvs get-dc)))
+
+(define (focus!) (send cvs refresh) (send cvs focus))
 
 ;; clears the screen with a black rectangle
 (define/contract (clear-screen!)
