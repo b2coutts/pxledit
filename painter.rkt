@@ -139,6 +139,7 @@
 ;; callback for the paint-callback of canvas%; TODO: should this redraw everything?
 (define/contract (paint-cb! cvs-arg dc-arg)
   (-> (is-a?/c canvas%) (is-a?/c dc<%>) void?)
+  ;(printf "DEBUG: paint-cb! called\n")
   (define dset (get-dirty)) ;; set of dirty state variables
   (define nlst (filter (lambda (k) (not (empty? (set-union (picture-deps (hash-ref pics k)) dset))))
                        (hash-keys pics)))

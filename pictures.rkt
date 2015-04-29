@@ -27,7 +27,7 @@
                   (make-posn (* pxwd i) (* pxwd j)))))
       (values (append imglst imgs) (append posnlst posns))))
   (place-images/align imgs posns "left" "top"
-    (rectangle (* pxwd (sref 'xpx)) (* pxwd (sref 'ypx)) "solid" "gray")))
+    (rectangle (* pxwd (sref 'xpx)) (* pxwd (sref 'ypx)) "solid" (color 0 0 0 0))))
 
 (define/contract (mk-pic-pixels xpx ypx pxwd)
   (-> integer? integer? integer? picture?)
@@ -46,14 +46,14 @@
   (-> integer? integer? integer? picture?)
   (picture
     'background
-    1
+    (+ (* xpx pxwd) 1)
     1
     (+ (* xpx pxwd) 100)
     (max (* ypx pxwd) 100)
     (set)
     -999.0
     #t
-    (const (rectangle (+ (* pxwd xpx) 100) (max (* pxwd ypx) 100) "solid" "black"))))
+    (const (rectangle 100 (max (* pxwd ypx) 100) "solid" "black"))))
 
 (define/contract (mk-pic-cursor xpx ypx pxwd)
   (-> integer? integer? integer? picture?)
