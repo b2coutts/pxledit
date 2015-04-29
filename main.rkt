@@ -63,7 +63,7 @@
     (add-pic! (mk (sref 'xpx) (sref 'ypx) (sref 'pxwd)))))
 
 ;; helper function, which moves the cursor to the specified position, snapping back to nearest edge
-;; or corner if necessary.
+;; or corner if necessary. Redraws the screen
 (define/contract (move-cursor! x y)
   (-> integer? integer? void?)
   (define (get-in-range low high val)
@@ -74,7 +74,8 @@
   (define newx (get-in-range 0 (- (sref 'xpx) 1) x))
   (define newy (get-in-range 0 (- (sref 'ypx) 1) y))
   (sset! 'cursor-x newx)
-  (sset! 'cursor-y newy))
+  (sset! 'cursor-y newy)
+  (paint!))
 
 ;; helper function, gets the current color
 (define/contract (current-brush-color)
@@ -115,11 +116,13 @@
     [#\) (move-cursor! x (sref 'ypx))]
 
     ;; toggle cursor visibility
-    [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))]
+    [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
+         (paint!)]
 
     ;; read colour under cursor into current brush
     [#\q (vector-set! (srefd! 'brushes) (sref 'current-brush)
-                      (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))]
+                      (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))
+         (paint!)]
 
     ;; adjust red amount
     [#\r (inc-color! 'red (if ctrl 50 1))]
@@ -147,19 +150,23 @@
 
     ;; change brush
     [(or #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-      (sset! 'current-brush (- (char->integer code) 48))]
+      (sset! 'current-brush (- (char->integer code) 48))
+      (paint!)]
 
     ;; apply brush to current pixel
-    [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
-         (vector-set! (srefd! 'colors) idx (current-brush-color))]
+    [#\d (sset! 'undo-stack (cons (cons idx (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
+         (vector-set! (srefd! 'colors) idx (current-brush-color))
+         (paint!)]
 
     ;; zoom in/out
     [#\+ (clear-pics!)
          (sset! 'pxwd (+ (sref 'pxwd) 1))
-         (install-pictures!)]
+         (install-pictures!)
+         (paint!)]
     [#\- (clear-pics!)
          (sset! 'pxwd (- (sref 'pxwd) 1))
-         (install-pictures!)]
+         (install-pictures!)
+         (paint!)]
 
     ;; save the current image
     [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
