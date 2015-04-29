@@ -104,7 +104,7 @@
     'filename
     (+ (* xpx pxwd) 1)
     150
-    (+ (* xpx pxwd) 100)
+    (+ (* xpx pxwd) 300)
     200
     (set 'filename)
     0.5
