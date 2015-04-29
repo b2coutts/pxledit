@@ -57,8 +57,9 @@
   (make-hash))
 
 ;; initializes the entire module; sets up drawing context and global state
-(define/contract (init-painter! on-char-fn width height title)
-  (-> (-> (is-a?/c key-event%) void?) integer? integer? string? void?)
+(define/contract (init-painter! on-char-fn on-paint-fn width height title)
+  (-> (-> (is-a?/c key-event%) void?) (-> (is-a?/c canvas%) (is-a?/c dc<%>) void?)
+      integer? integer? string? void?)
   (unless (and (void? frm) (void? cvs))
     (error "init-painter! called twice"))
   ;; TODO: assuming that the paint-callback doesn't actually need to redraw everything
@@ -72,7 +73,7 @@
                   (define/override (on-char ke)
                     (on-char-fn ke)))
                  [parent frm]
-                 [paint-callback paint-cb!]))
+                 [paint-callback on-paint-fn]))
   (send cvs min-client-width width)
   (send cvs min-client-height height)
   (send frm show #t))
@@ -133,7 +134,7 @@
 ;; function which draws all necessary pictures
 (define/contract (paint!)
   (-> void?)
-  (send cvs refresh))
+  (paint-cb! cvs (send cvs get-dc)))
 
 ;; callback for the paint-callback of canvas%; TODO: should this redraw everything?
 (define/contract (paint-cb! cvs-arg dc-arg)

@@ -1,6 +1,6 @@
 #lang racket
 
-(require "painter.rkt" "state.rkt" "pictures.rkt" "util.rkt" "image.rkt")
+(require "painter.rkt" "state.rkt" "pictures.rkt" "util.rkt" "image.rkt" "handler.rkt")
 
 (require racket/gui/base data/gvector
          (except-in 2htdp/image make-color make-pen)
@@ -74,8 +74,7 @@
   (define newx (get-in-range 0 (- (sref 'xpx) 1) x))
   (define newy (get-in-range 0 (- (sref 'ypx) 1) y))
   (sset! 'cursor-x newx)
-  (sset! 'cursor-y newy)
-  (paint!))
+  (sset! 'cursor-y newy))
 
 ;; helper function, gets the current color
 (define/contract (current-brush-color)
@@ -91,8 +90,7 @@
       ['red   (color (modulo (+ r amt) 256) g b a)]
       ['green (color r (modulo (+ g amt) 256) b a)]
       ['blue (color r g (modulo (+ b amt) 256) a)]
-      ['alpha (color r g b (modulo (+ a amt) 256))]))
-  (paint!))
+      ['alpha (color r g b (modulo (+ a amt) 256))])))
 
 (define/contract (handle-ke! ke)
   (-> (is-a?/c key-event%) void?)
@@ -117,13 +115,11 @@
     [#\) (move-cursor! x (sref 'ypx))]
 
     ;; toggle cursor visibility
-    [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))
-         (paint!)]
+    [#\c (sset! 'cursor-visible? (not (sref 'cursor-visible?)))]
 
     ;; read colour under cursor into current brush
     [#\q (vector-set! (srefd! 'brushes) (sref 'current-brush)
-                      (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))
-         (paint!)]
+                      (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))]
 
     ;; adjust red amount
     [#\r (inc-color! 'red (if ctrl 50 1))]
@@ -151,23 +147,19 @@
 
     ;; change brush
     [(or #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-      (sset! 'current-brush (- (char->integer code) 48))
-      (paint!)]
+      (sset! 'current-brush (- (char->integer code) 48))]
 
     ;; apply brush to current pixel
     [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
-         (vector-set! (srefd! 'colors) idx (current-brush-color))
-         (paint!)]
+         (vector-set! (srefd! 'colors) idx (current-brush-color))]
 
     ;; zoom in/out
     [#\+ (clear-pics!)
          (sset! 'pxwd (+ (sref 'pxwd) 1))
-         (install-pictures!)
-         (paint!)]
+         (install-pictures!)]
     [#\- (clear-pics!)
          (sset! 'pxwd (- (sref 'pxwd) 1))
-         (install-pictures!)
-         (paint!)]
+         (install-pictures!)]
 
     ;; save the current image
     [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
@@ -177,14 +169,17 @@
           [(cons (list ux uy color) as)
             (sset! 'undo-stack as)
             (move-cursor! ux uy)
-            (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)
-            (paint!)]
+            (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)]
           [_ (void)])]
     [_ (void)])
   (void))
+
+;; construct handlers for events/painting
+(define-values (key-handler paint-handler) (init-handler! handle-ke! paint!))
           
 (init-painter!
-  handle-ke!
+  key-handler
+  paint-handler
   (+ (* (sref 'xpx) (sref 'pxwd)) 100)
   (max 100 (* (sref 'ypx) (sref 'pxwd)))
   "girffetest")
