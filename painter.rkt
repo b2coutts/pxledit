@@ -76,6 +76,7 @@
                  [paint-callback on-paint-fn]))
   (send cvs min-client-width width)
   (send cvs min-client-height height)
+  (send cvs set-canvas-background (make-object color% 0 0 0))
   (send frm show #t))
 
 ;; helper function; determines whether a "depends on" b, i.e., a needs to be redrawn if b is redrawn
