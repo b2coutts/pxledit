@@ -60,10 +60,14 @@
   (define empty-rec (rectangle (* pxwd xpx) (* pxwd ypx) "solid" (color 0 0 0 0)))
   (define cwidth (floor (* pxwd 0.3)))
   (define (cursor-img col)
-    (overlay
-      (circle (- cwidth 1) "solid" col)
-      (circle cwidth "solid" (invert-color col))
-      (rectangle pxwd pxwd "solid" (color 0 0 0 0))))
+    (match pxwd
+      [0 (error "ZERO")]
+      [(or 1 2 3) (rectangle pxwd pxwd "solid" col)]
+      [(or 4 5 6 7 8 9) (overlay (circle cwidth "solid" col)
+                                 (rectangle pxwd pxwd "solid" (color 0 0 0 0)))]
+      [_ (overlay (circle (- cwidth 1) "solid" col)
+                  (circle cwidth "solid" (invert-color col))
+                  (rectangle pxwd pxwd "solid" (color 0 0 0 0)))]))
   (picture
     'cursor
     1

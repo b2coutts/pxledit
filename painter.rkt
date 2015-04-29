@@ -14,6 +14,7 @@
   remove-pic!
   clear-pics!
   paint!
+  clear-screen!
 )
 
 (require "state.rkt")
@@ -136,6 +137,12 @@
 (define/contract (paint!)
   (-> void?)
   (paint-cb! cvs (send cvs get-dc)))
+
+;; clears the screen with a black rectangle
+(define/contract (clear-screen!)
+  (-> void?)
+  (define img (rectangle (send cvs get-width) (send cvs get-height) "solid" (color 0 0 0 255)))
+  (render-image img (send cvs get-dc) 1 1))
 
 ;; callback for the paint-callback of canvas%; TODO: should this redraw everything?
 (define/contract (paint-cb! cvs-arg dc-arg)

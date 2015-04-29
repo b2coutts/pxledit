@@ -159,10 +159,13 @@
     ;; zoom in/out
     [#\+ (clear-pics!)
          (sset! 'pxwd (+ (sref 'pxwd) 1))
-         (install-pictures!)]
-    [#\- (clear-pics!)
-         (sset! 'pxwd (- (sref 'pxwd) 1))
-         (install-pictures!)]
+         (install-pictures!)
+         (clear-screen!)]
+    [#\- (when (> (sref 'pxwd) 1)
+          (clear-pics!)
+          (sset! 'pxwd (- (sref 'pxwd) 1))
+          (install-pictures!)
+          (clear-screen!))]
 
     ;; save the current image
     [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
