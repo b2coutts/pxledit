@@ -1,6 +1,6 @@
 #lang racket
 
-(provide mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor get-color)
+(provide mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor mk-pic-filename get-color)
 
 (require "painter.rkt" "state.rkt" "util.rkt")
 
@@ -86,7 +86,7 @@
     (+ (* xpx pxwd) 1)
     1
     (+ (* xpx pxwd) 100)
-    100
+    120
     (set 'cursor-x 'cursor-y 'brushes 'current-brush)
     1.0
     #f
@@ -97,3 +97,16 @@
             (text (format "G: ~a" g) 14 'green)
             (text (format "B: ~a" b) 14 'blue)
             (text (format "A: ~a" a) 14 'white)))))
+
+(define/contract (mk-pic-filename xpx ypx pxwd)
+  (-> integer? integer? integer? picture?)
+  (picture
+    'filename
+    (+ (* xpx pxwd) 1)
+    150
+    (+ (* xpx pxwd) 100)
+    200
+    (set 'filename)
+    0.5
+    #f
+    (thunk (text (sref 'filename) 14 'white))))

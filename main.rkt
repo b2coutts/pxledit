@@ -1,21 +1,53 @@
 #lang racket
 
-(require "painter.rkt" "state.rkt" "pictures.rkt" "util.rkt")
+(require "painter.rkt" "state.rkt" "pictures.rkt" "util.rkt" "image.rkt")
 
 (require racket/gui/base data/gvector
          (except-in 2htdp/image make-color make-pen)
          (only-in mrlib/image-core render-image))
 
-;; TODO: un-hardcode all of these values
-(sset! 'pxwd 16)    ;; displayed width of a bmp pixel
-(sset! 'xpx 20)     ;; number of columns in bmp
-(sset! 'ypx 20)     ;; number of rows in bmp
+;; parse cmd line arguments, import an image if one is given
+(define img-x-size (make-parameter 20))
+(define img-y-size (make-parameter 20))
+(define img-px-width (make-parameter 16))
+
+(define img-filename (command-line
+  #:program "pxledit"
+  #:once-each
+    [("-x" "--xsize") xsize
+                      "Edit an image xsize pixels wide"
+                      (img-x-size (string->number xsize))]
+    [("-y" "--ysize") ysize
+                      "Edit an image ysize pixels tall"
+                      (img-y-size (string->number ysize))]
+    [("-p" "--pixel-width") pw
+                            "Display each pixel with a pw-by-pw square on screen"
+                            (img-px-width (string->number pw))]
+  #:args (filename)
+  filename))
+
+(sset! 'xpx (img-x-size))
+(sset! 'ypx (img-y-size))
+(sset! 'pxwd (img-px-width))
+(sset! 'filename img-filename)
 (sset! 'cursor-x 0) ;; x- and y- positions of the cursor, 0-indexed
 (sset! 'cursor-y 0)
 (sset! 'colors (make-vector (* (sref 'xpx) (sref 'ypx)) white)) ;; the bitmap colours
 (sset! 'cursor-visible? #t)
 (sset! 'current-brush 1)  ;; the current brush (colour) being used
-(sset! 'brushes (make-vector 10 white))
+(sset! 'brushes (make-vector 10 black))
+
+(when (file-exists? img-filename)
+  (define perms (file-or-directory-permissions img-filename))
+  (cond
+    [(not (member 'read perms))
+      (error (format "ERROR: you do not have permission to read from ~a" img-filename))]
+    [(not (member 'write perms))
+      (error (format "ERROR: you do not have permission to write to ~a" img-filename))]
+    [else (define-values (vec width height) (read-pixels-from-file img-filename))
+          (sset! 'xpx width)
+          (sset! 'ypx width)
+          (sset! 'colors vec)]))
 
 ;; TODO: temporary; makes the default image more interesting
 (when #f
@@ -25,7 +57,8 @@
 
 ;; installs all pictures to painter, using the given pixel counts/size
 (define (install-pictures!)
-  (for ([mk (list mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor)])
+  (for ([mk (list mk-pic-background mk-pic-pixels mk-pic-cursor-info mk-pic-cursor
+                  mk-pic-filename)])
     (add-pic! (mk (sref 'xpx) (sref 'ypx) (sref 'pxwd)))))
 
 ;; helper function, which moves the cursor to the specified position, snapping back to nearest edge
@@ -131,6 +164,9 @@
          (sset! 'pxwd (- (sref 'pxwd) 1))
          (install-pictures!)
          (paint!)]
+
+    ;; save the current image
+    [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
     [_ (void)])
   (void))
           
