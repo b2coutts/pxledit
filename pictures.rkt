@@ -121,5 +121,5 @@
           (mytext (format "B: ~a" pb) 'blue)
           (mytext (format "A: ~a" pa) 'white)
           (mytext "" 'black) ;; spacer
-          (mytext (sref 'filename) 'white))
-        (rectangle 150 150 "solid" black)))))
+          (mytext (format "~a~a" (sref 'filename) (if (sref 'dirty) "*" "")) 'white))
+        (rectangle 250 250 "solid" black)))))

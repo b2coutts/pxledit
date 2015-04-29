@@ -40,6 +40,7 @@
 (sset! 'current-brush 1)  ;; the current brush (colour) being used
 (sset! 'brushes (make-vector 10 black))
 (sset! 'undo-stack '())
+(sset! 'dirty #t)
 
 (when (file-exists? img-filename)
   (define perms (file-or-directory-permissions img-filename))
@@ -49,6 +50,7 @@
     [(not (member 'write perms))
       (error (format "ERROR: you do not have permission to write to ~a" img-filename))]
     [else (define-values (vec width height) (read-pixels-from-file img-filename))
+          (sset! 'dirty #f)
           (sset! 'xpx width)
           (sset! 'ypx width)
           (sset! 'colors vec)]))
@@ -169,9 +171,11 @@
 
     ;; apply brush
     [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
+         (sset! 'dirty #t)
          (vector-set! (srefd! 'colors) idx (current-brush-color))]
     [#\D (define fcol (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))
          (unless (equal? fcol (current-brush-color))
+          (sset! 'dirty #t)
           (sset! 'undo-stack (cons (list 'flood-fill '() '() fcol) (sref 'undo-stack)))
           (flood-fill! fcol (current-brush-color) x y))]
 
@@ -187,7 +191,8 @@
           (clear-screen!))]
 
     ;; save the current image
-    [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
+    [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))
+         (sset! 'dirty #f)]
 
     ;; undo
     [#\u (match (sref 'undo-stack)
