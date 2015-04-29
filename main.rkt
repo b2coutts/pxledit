@@ -150,7 +150,7 @@
       (sset! 'current-brush (- (char->integer code) 48))]
 
     ;; apply brush to current pixel
-    [#\d (sset! 'undo-stack (cons (cons idx (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
+    [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
          (vector-set! (srefd! 'colors) idx (current-brush-color))]
 
     ;; zoom in/out
@@ -166,8 +166,10 @@
 
     ;; undo
     [#\u (match (sref 'undo-stack)
-          [(cons (cons uidx color) as) (sset! 'undo-stack as)
-                                       (vector-set! (srefd! 'colors) uidx color)]
+          [(cons (list ux uy color) as)
+            (sset! 'undo-stack as)
+            (move-cursor! ux uy)
+            (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)]
           [_ (void)])]
     [_ (void)])
   (void))
