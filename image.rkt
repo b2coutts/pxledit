@@ -13,13 +13,11 @@
   (for ([y height])
     (for ([x width])
       (match-define (color r g b a) (vector-ref vec (+ (* y width) x)))
-      (printf "(~a,~a)[~a] => ~a\n" x y (+ (* y width) x) (color r g b a))
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 0) a)
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 1) r)
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 2) b)
       (bytes-set! pxls (+ (* 4 (+ (* y width) x)) 3) g)))
   (send bmp set-argb-pixels 0 0 width height pxls)
-  (pretty-print pxls)
   (send bmp save-file filename 'png)
   (void))
 
