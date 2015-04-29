@@ -94,6 +94,22 @@
       ['blue (color r g (modulo (+ b amt) 256) a)]
       ['alpha (color r g b (modulo (+ a amt) 256))])))
 
+;; flood fills bcol, filling only over the color fcol
+(define/contract (flood-fill! fcol bcol x y)
+  (-> color? color? integer? integer? void?)
+  (when (and (<= 0 x (- (sref 'xpx) 1))
+             (<= 0 y (- (sref 'ypx) 1)))
+    (define idx (+ (* y (sref 'xpx)) x))
+    (define pcol (vector-ref (sref 'colors) idx))
+    (when (equal? pcol fcol)
+      (vector-set! (srefd! 'colors) idx bcol)
+      (match-define (cons (list 'flood-fill xs ys _) rst) (sref 'undo-stack))
+      (sset! 'undo-stack (cons (list 'flood-fill (cons x xs) (cons y ys) fcol) rst))
+      (flood-fill! fcol bcol (- x 1) y)
+      (flood-fill! fcol bcol (+ x 1) y)
+      (flood-fill! fcol bcol x (- y 1))
+      (flood-fill! fcol bcol x (+ y 1)))))
+
 (define/contract (handle-ke! ke)
   (-> (is-a?/c key-event%) void?)
   (define x (sref 'cursor-x))
@@ -151,9 +167,13 @@
     [(or #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
       (sset! 'current-brush (- (char->integer code) 48))]
 
-    ;; apply brush to current pixel
+    ;; apply brush
     [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
          (vector-set! (srefd! 'colors) idx (current-brush-color))]
+    [#\D (define fcol (vector-ref (sref 'colors) (+ (* y (sref 'xpx)) x)))
+         (unless (equal? fcol (current-brush-color))
+          (sset! 'undo-stack (cons (list 'flood-fill '() '() fcol) (sref 'undo-stack)))
+          (flood-fill! fcol (current-brush-color) x y))]
 
     ;; zoom in/out
     [#\+ (clear-pics!)
@@ -175,7 +195,15 @@
             (sset! 'undo-stack as)
             (move-cursor! ux uy)
             (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)]
-          [_ (void)])]
+          [(cons (list 'flood-fill xs ys color) as)
+            (sset! 'undo-stack as)
+            (match-define (cons cx cy)
+              (for/last ([ux xs]
+                         [uy ys])
+                (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)
+                (cons ux uy)))
+              (move-cursor! cx cy)]
+          ['() (void)])]
     [_ (void)])
   (void))
 
