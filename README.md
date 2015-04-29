@@ -27,6 +27,6 @@ Saving/Loading
 --------------
 
 You can save your file by pressing s. The file will be saved to the filename
-you passed as an argument.  There is no indication that the file has been
-saved. You can load a file simply (and only) by passing its name as the initial
-command-line argument. The file will be overwritten if you save.
+you passed as an argument. You can load a file simply (and only) by passing its
+name as the initial command-line argument. The file will be overwritten if you
+save.
