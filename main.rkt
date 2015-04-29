@@ -36,6 +36,7 @@
 (sset! 'cursor-visible? #t)
 (sset! 'current-brush 1)  ;; the current brush (colour) being used
 (sset! 'brushes (make-vector 10 black))
+(sset! 'undo-stack '())
 
 (when (file-exists? img-filename)
   (define perms (file-or-directory-permissions img-filename))
@@ -98,6 +99,7 @@
   (define y (sref 'cursor-y))
   (define ctrl (send ke get-control-down))
   (define code (send ke get-key-code))
+  (define idx (+ (* y (sref 'xpx)) x))
   (match code
     ;; navigate the area
     [#\h (move-cursor! (- x (if ctrl 10 1)) y)]
@@ -152,7 +154,8 @@
       (paint!)]
 
     ;; apply brush to current pixel
-    [#\d (vector-set! (srefd! 'colors) (+ (* y (sref 'xpx)) x) (current-brush-color))
+    [#\d (sset! 'undo-stack (cons (cons idx (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
+         (vector-set! (srefd! 'colors) idx (current-brush-color))
          (paint!)]
 
     ;; zoom in/out
@@ -167,6 +170,12 @@
 
     ;; save the current image
     [#\s (write-pixels-to-file (sref 'colors) (sref 'xpx) (sref 'ypx) (sref 'filename))]
+
+    ;; undo
+    [#\u (match (sref 'undo-stack)
+          [(cons (cons uidx color) as) (sset! 'undo-stack as)
+                                       (vector-set! (srefd! 'colors) uidx color)]
+          [_ (void)])]
     [_ (void)])
   (void))
           
