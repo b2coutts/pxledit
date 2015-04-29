@@ -182,7 +182,7 @@
   paint-handler
   (+ (* (sref 'xpx) (sref 'pxwd)) 100)
   (max 100 (* (sref 'ypx) (sref 'pxwd)))
-  "girffetest")
+  (format "pxledit: ~a" img-filename))
 
 (install-pictures!)
 
