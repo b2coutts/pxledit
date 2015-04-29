@@ -1,6 +1,6 @@
 This is a very simple and minimalistic PNG editor, intended for small images,
 in particular, pixel art. It is operated entirely via the keyboard, and uses
-vim-like keybindings. One can see how to run it by typing `racket main.rkt
+vim-like keybindings. One can see how to run it by typing `racket pxledit.rkt
 --help`. What follows is a brief explanation of the keybindings.
 
 Navigation
