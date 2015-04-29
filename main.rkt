@@ -91,7 +91,8 @@
       ['red   (color (modulo (+ r amt) 256) g b a)]
       ['green (color r (modulo (+ g amt) 256) b a)]
       ['blue (color r g (modulo (+ b amt) 256) a)]
-      ['alpha (color r g b (modulo (+ a amt) 256))])))
+      ['alpha (color r g b (modulo (+ a amt) 256))]))
+  (paint!))
 
 (define/contract (handle-ke! ke)
   (-> (is-a?/c key-event%) void?)
@@ -154,7 +155,7 @@
       (paint!)]
 
     ;; apply brush to current pixel
-    [#\d (sset! 'undo-stack (cons (cons idx (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
+    [#\d (sset! 'undo-stack (cons (list x y (vector-ref (sref 'colors) idx)) (sref 'undo-stack)))
          (vector-set! (srefd! 'colors) idx (current-brush-color))
          (paint!)]
 
@@ -176,7 +177,8 @@
           [(cons (list ux uy color) as)
             (sset! 'undo-stack as)
             (move-cursor! ux uy)
-            (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)]
+            (vector-set! (srefd! 'colors) (+ (* uy (sref 'xpx)) ux) color)
+            (paint!)]
           [_ (void)])]
     [_ (void)])
   (void))

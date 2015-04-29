@@ -70,8 +70,7 @@
   (set! cvs (new (class canvas%
                   (super-new)
                   (define/override (on-char ke)
-                    (on-char-fn ke)
-                    (send cvs refresh)))
+                    (on-char-fn ke)))
                  [parent frm]
                  [paint-callback paint-cb!]))
   (send cvs min-client-width width)
