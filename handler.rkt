@@ -25,7 +25,6 @@
   (-> (-> (is-a?/c key-event%) void?) (-> void?) void?)
   (define (loop)
     (define queue (thread-receive-all))
-    (printf "DEBUG: queue is: ~s\n" queue)
     (cond
       [(empty? queue) (sync (thread-receive-evt))]
       [else (define imps (filter-map important? queue))
